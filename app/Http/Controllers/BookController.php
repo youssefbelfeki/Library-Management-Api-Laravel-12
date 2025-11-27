@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBookRequest;
+use App\Http\Requests\UpdateBookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Http\Request;
@@ -12,9 +13,24 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $books = Book::with('author')->paginate(10);
+        $query = Book::with('author');
+        //search functionality 
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('isbn', 'like', "%{$search}%")
+                    ->orWhereHas('author', function ($authorQuery) use ($search) {
+                        $authorQuery->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+        if($request->has('genre')){
+            $query->where('genre',$request->genre);
+        }
+        $books = $query->paginate(10);
         return BookResource::collection($books);
     }
 
@@ -38,14 +54,14 @@ class BookController extends Controller
             $book->load('author');
             return new BookResource($book);
         } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Error'. $th->getMessage()], 404);
+            return response()->json(['status' => false, 'message' => 'Error' . $th->getMessage()], 404);
         }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(StoreBookRequest $request, Book $book)
+    public function update(UpdateBookRequest $request, Book $book)
     {
         $book->update($request->validated());
         $book->load('author');
