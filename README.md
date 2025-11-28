@@ -9,9 +9,8 @@
 
 # Library Management API
 
-Lightweight RESTful API for managing authors, books, members and borrowings — built with Laravel.
-
-This repository is a sample library management backend (API-only) with models and endpoints for Authors, Books, Members and Borrowings. It includes request validation, API resources, factories and migrations so you can set it up locally for development, testing, or prototypes.
+Lightweight RESTful API for managing authors, books, members and borrowings — built with Laravel 12.
+This repository is a sample library management backend (API-only) with models and endpoints for Authors, Books, Members and Borrowings. It includes request validation, API resources, factories and migrations so you can set it up locally for development
 
 ---
 
@@ -113,16 +112,93 @@ Authors use `AuthorResource` and return fields including `name`, `bio`, `nationa
 
 ---
 
-## 🧪 Tests
+## 🧾 Features (implemented & planned)
 
-Run automated tests using PHPUnit/Laravel's test runner:
+Implemented
+- Author and Book resource CRUD (controllers, requests, resources, factories and migrations)
+- Paginated list endpoints using Resource Collections
+- Author-Book relationship with books count returned by `AuthorResource`
+- Book convenience methods: availability check, borrow/return helpers
+- Database factories and seeders to create test/demo records
+- Sanctum setup available for token-based authentication
 
-```bash
-composer test
-php artisan test
-```
+Planned / present in code (models & migrations exist)
+- Models & database structure for Members and Borrowings (see `app/Models`) — these are present and ready for API controllers
+- Borrowing lifecycle helpers (overdue checks, status management)
+
+If you need a complete API for Members and Borrowings created (endpoints, resources, routes), I can add these controllers + validation to match the style used for Authors and Books.
 
 ---
+
+## 📘 Members & Borrowings (models included)
+
+The project already includes the `Member` and `Borrowing` models and migrations. These capture typical library flows:
+
+- Member: name, email, phone, address, membership_date, status
+- Borrowing: book_id, member_id, borrowed_date, due_date, returned_date, status
+
+Example JSON to create a member (if a `POST /api/members` route is added):
+
+```json
+POST /api/members
+{
+	"name": "Jane Doe",
+	"email": "jane@example.com",
+	"phone": "+1-555-1234",
+	"address": "123 Library Lane",
+	"membership_date": "2024-01-12",
+	"status": "active"
+}
+```
+
+Example JSON to create a borrowing record (if a `POST /api/borrowings` route is added):
+
+```json
+POST /api/borrowings
+{
+	"book_id": 5,
+	"member_id": 2,
+	"borrowed_date": "2025-11-28",
+	"due_date": "2025-12-12",
+	"status": "borrowed"
+}
+```
+
+These endpoints are not wired in `routes/api.php` by default, but the building blocks (models, migrations, and factory definitions) are present so adding resource controllers is straightforward.
+
+---
+
+## 🪟 Windows (WAMP) dev tips
+
+If you're running this on Windows with WAMP or similar, here are commands and tips that work in PowerShell:
+
+1. Ensure your command prompt runs with PHP in PATH (WAMP's php folder) or use the full path.
+
+2. Copy `.env` and create sqlite file (quick local set up):
+
+```powershell
+copy .env.example .env
+php artisan key:generate
+New-Item -ItemType File -Path database\database.sqlite -Force
+```
+
+3. Run migrations and seeders
+
+```powershell
+php artisan migrate --seed
+php artisan serve
+```
+
+4. Generate a token for quick API calls (Tinker example):
+
+```powershell
+php artisan tinker
+>>> $user = \App\Models\User::factory()->create([ 'email' => 'dev@example.com' ]);
+>>> $user->createToken('dev-token')->plainTextToken;
+```
+
+Then use that token as a Bearer token in requests.
+
 
 ## 🧩 Contributing
 
